@@ -1,3 +1,6 @@
+#ifndef STACKHEADER
+#define STACKHEADER
+
 #include <stdio.h>
 #include <ctype.h>
 #include <math.h>
@@ -55,7 +58,8 @@ enum status_working
     STACK_RIGHT_CANARY_ERROR,
     STACK_LEFT_CANARY_ERROR,
     FILE_ERROR,
-    HASH_ERROR
+    HASH_ERROR,
+    MEMORY_SIZE_ERROR
 };
 
 
@@ -80,3 +84,5 @@ int     check_stack_on_errors   (const Stack* stack, const char* file, const cha
 int     stack_dump              (const Stack* stack, const char* file, const char* funct, const int line);
 
 unsigned int MurmurHash2 (char * key, unsigned int len);
+
+#endif
