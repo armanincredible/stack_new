@@ -41,7 +41,7 @@ int stack_ctor (Stack* stack, const int size_st)
     #ifdef SECOND_LEVEL
         stack->hash = 0;
     #endif
-
+    
     return check_stack_on_errors_(stack);
 
 }
@@ -108,6 +108,10 @@ int stack_push (Stack* stack, elem_t value)
 int stack_pop (Stack* stack, elem_t *variable)
 {
     int error = 0;
+    if (stack->size <= 0)
+    {
+        stack->status = "MEMORY_SIZE_ERROR";
+    }
     if ((error = check_stack_on_errors_(stack)) > 0)
     {
         return error;
@@ -187,17 +191,22 @@ static int stack_resize (Stack* stack, const int mode)
 
 int stack_status (Stack* stack)
 {
+    if ((stack->data == (elem_t*)POISON_ADRESS) || 
+        (stack->data == NULL))
+    {
+        stack->status = "DATA_ADRESS_ERROR";
+        return DATA_ADRESS_ERROR;
+    }
+
     if (stack == NULL)
     {
         stack->status = "STACK_ADRESS_ERROR";
         return STACK_ADRESS_ERROR;
     }
 
-    if ((stack->data == (elem_t*)POISON_ADRESS) || 
-        (stack->data == NULL))
+    if (stack->status == "MEMORY_SIZE_ERROR")
     {
-        stack->status = "DATA_ADRESS_ERROR";
-        return DATA_ADRESS_ERROR;
+        return MEMORY_SIZE_ERROR;
     }
 
     if ((stack->capacity <= 0) ||
@@ -265,10 +274,12 @@ int check_stack_on_errors (const Stack* stack, const char* file, const char* fun
 
 elem_t stack_top (const Stack* stack)
 {
-    if (check_stack_on_errors_(stack) == -1)
+    int error = 0;
+    if ((error = check_stack_on_errors_(stack)) > 0)
     {
-        return -1;
+        return (elem_t)error;
     }
+
     return (*(stack->data + stack->size - 1));
 }
 
@@ -335,41 +346,42 @@ unsigned int MurmurHash2 (char * key, unsigned int len)
 
 int stack_dump (const Stack* stack, const char* file, const char* funct, const int line)
 {
-    FILE* stack_status = fopen ("stackstatus.txt", "w");
-    if (stack_status == NULL)
+    FILE* stack_status_file = fopen ("stackstatus.txt", "w");
+    if (stack_status_file == NULL)
     {
         return FILE_ERROR;
     }
     #ifdef NO_PROTECT
-        fprintf (stack_status, "Stack haven't Protect\n\n");
+        fprintf (stack_status_file, "Stack haven't Protect\n\n");
     #endif
 
     #ifdef FIRST_LEVEL
-        fprintf (stack_status, "Stack have FIRST_LEVEL Protect (it means that canarey works)\n\n");
+        fprintf (stack_status_file, "Stack have FIRST_LEVEL Protect (it means that canarey works)\n\n");
     #endif
 
     #ifdef SECOND_LEVEL
-        fprintf (stack_status, "Stack have SECOND_LEVEL Protect (it means that hash and canary works)\n\n");
+        fprintf (stack_status_file, "Stack have SECOND_LEVEL Protect (it means that hash and canary works)\n\n");
     #endif
 
 
-    fprintf (stack_status,  "Stack <%s> Have %s at %s at (%s:%d) \n\n",
+    fprintf (stack_status_file,  "Stack <%s> Have %s at %s at (%s:%d) \n\n",
              typeid(stack).name(), stack->status, file, funct, line);
+
 
     if (stack->data != (elem_t*)POISON_ADRESS)
     {       
-            fprintf (stack_status,
+            fprintf (stack_status_file,
                     "Capacity = %d\n" "Size = %d\n" "Pointer of data <%s> = %d\n\n",
                     stack->capacity, stack->size, typeid(*(stack->data)).name(), stack->data);
 
             #ifdef SECOND_LEVEL
 
-                fprintf (stack_status, "hash = %d\n", stack->hash);
+                fprintf (stack_status_file, "hash = %d\n", stack->hash);
             #endif
 
             #ifndef NO_PROTECT
 
-                fprintf (stack_status,
+                fprintf (stack_status_file,
                         "left_canary_stack = %d\n" "right_canary_stack = %d\n"
                         "left_canary_data = %d\n" "right_canary_data = %d\n\n",
                         stack->left_canary, stack->right_canary,
@@ -380,12 +392,12 @@ int stack_dump (const Stack* stack, const char* file, const char* funct, const i
 
     for (int i = 0; i < stack->size; i++) 
     {
-        fprintf (stack_status, "\tdata[%d] = %d \n", i, stack->data[i]);
+        fprintf (stack_status_file, "\tdata[%d] = %d \n", i, stack->data[i]);
     }
 
-    fprintf (stack_status, "\nEND OF TXT\n \t\t\t\\Thanks for using our program\\");
+    fprintf (stack_status_file, "\nEND OF TXT\n \t\t\t\\Thanks for using our program\\");
 
-    fclose (stack_status);
+    fclose (stack_status_file);
 
     return NO_ERRORS;                                                               
 }
