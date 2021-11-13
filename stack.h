@@ -5,11 +5,11 @@
 #include <ctype.h>
 #include <math.h>
 #include <assert.h>
-#include <cstdlib>
+#include <stdlib.h>
 #include <string.h> 
 #include <typeinfo>
 
-enum protect
+enum SECOND_LEVEL
 {
     NO_PROTECT,
     FIRST_LEVEL, //canary
@@ -66,7 +66,7 @@ enum status_working
 #define check_stack_on_errors_(stack)  check_stack_on_errors (stack, __FILE__, __func__, __LINE__)
 
 const int COMMON_RATIO = 2;
-const int BASIC_SIZE = 4;
+const int BASIC_SIZE = 8;
 const int Value_Reduce_Memory = 2;
 const elem_t POISON_VALUE = 666999;
 const int POISON_ADRESS = 0xDEADBEEF;
@@ -77,10 +77,8 @@ int     stack_dtor              (Stack* stack);
 
 int     stack_push              (Stack* stack, elem_t value);
 int     stack_pop               (Stack* stack, elem_t *variable);
-elem_t    stack_top               (const Stack* stack);
+elem_t    stack_top              (Stack* stack);
 
-int     stack_status            (Stack* stack);
-int     check_stack_on_errors   (const Stack* stack, const char* file, const char* funct, const int line);
 int     stack_dump              (const Stack* stack, const char* file, const char* funct, const int line);
 
 unsigned int MurmurHash2 (char * key, unsigned int len);
